@@ -1,4 +1,4 @@
-# typescript-2-typeforce
+# ts2tf
 A bikeshed tool that maps typescript types to typeforce code
 
 ### Example
