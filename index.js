@@ -51,10 +51,12 @@ function getNode (node) {
     case TOKEN.PropertySignature: {
       const name = node.name.getText()
       const type = getType(node.type)
-      const maybe = !!node.questionToken
-      const result = { name, type }
-      if (maybe) result.maybe = true
-      return result
+      if (!node.questionToken) return { name, type }
+      return {
+        name,
+        type,
+        maybe: true
+      }
     }
   }
 }
