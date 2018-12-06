@@ -4,6 +4,8 @@
 
 A bikeshed tool that maps typescript types to typeforce code
 
+**WARNING**: Uses `eval`, don't input unsafe code
+
 ### Example
 ``` bash
 node index.js test.d.ts

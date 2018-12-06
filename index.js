@@ -10,7 +10,12 @@ function getType (type) {
     case TOKEN.BooleanKeyword: return 'boolean'
     case TOKEN.NumberKeyword: return 'number'
     case TOKEN.StringKeyword: return 'string'
-    case TOKEN.LiteralType: return { literal: type.getText() }
+    case TOKEN.LiteralType: {
+      const text = type.getText()
+      return {
+        literal: eval(text) // oh no
+      }
+    }
     case TOKEN.TypeLiteral: return type.members.map(getNode)
     case TOKEN.ArrayType: {
       return { array: getType(type.elementType) }
@@ -30,9 +35,12 @@ function getType (type) {
         ikey: getType(type.indexType).literal
       }
     }
+    case TOKEN.ParenthesizedType: {
+      return getType(type.type)
+    }
   }
 
-  return undefined
+  throw new TypeError(`Unsupported TOKEN ${type.kind}`)
 }
 
 function getNode (node) {
