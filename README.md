@@ -5,3 +5,5 @@ A bikeshed tool that maps typescript types to typeforce code
 ``` bash
 node index.js test.d.ts
 ```
+
+## LICENSE [MIT](LICENSE)
