@@ -1,4 +1,7 @@
 # ts2tf
+
+**WARNING:** Work in progress, not yet ready (doesn't output code yet)
+
 A bikeshed tool that maps typescript types to typeforce code
 
 ### Example
