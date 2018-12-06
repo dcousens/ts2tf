@@ -1,0 +1,27 @@
+{
+  "name": "typescript-2-typeforce",
+  "version": "1.0.0",
+  "description": "A bikeshed tool that maps typescript types to typeforce code ",
+  "main": "index.js",
+  "dependencies": {
+    "typescript": "^3.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcousens/typescript-2-typeforce.git"
+  },
+  "keywords": [
+    "typescript",
+    "typeforce"
+  ],
+  "author": "Daniel Cousens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dcousens/typescript-2-typeforce/issues"
+  },
+  "homepage": "https://github.com/dcousens/typescript-2-typeforce#readme"
+}
