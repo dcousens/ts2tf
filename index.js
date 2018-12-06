@@ -5,60 +5,54 @@ const TOKEN = ts.SyntaxKind
 const code = fs.readFileSync(process.argv[2]).toString('utf8')
 const root = ts.createSourceFile('tmp.ts', code, ts.ScriptTarget.Latest, true)
 
-function getType (type) {
-  switch (type.kind) {
+function getTfType (node) {
+  switch (node.kind) {
+    case TOKEN.EndOfFileToken: return
+
     case TOKEN.BooleanKeyword: return 'boolean'
     case TOKEN.NumberKeyword: return 'number'
     case TOKEN.StringKeyword: return 'string'
     case TOKEN.LiteralType: {
-      const text = type.getText()
+      const text = node.getText()
       return {
         literal: eval(text) // oh no
       }
     }
-    case TOKEN.TypeLiteral: return type.members.map(getNode)
+    case TOKEN.TypeLiteral: return node.members.map(getTfType)
     case TOKEN.ArrayType: {
-      return { array: getType(type.elementType) }
+      return { array: getTfType(node.elementType) }
     }
     case TOKEN.TypeReference: {
-      return { ref: type.getText() }
+      return { ref: node.getText() }
     }
     case TOKEN.IntersectionType: {
-      return { and: type.types.map(getType) }
+      return { and: node.types.map(getTfType) }
     }
     case TOKEN.UnionType: {
-      return { or: type.types.map(getType) }
+      return { or: node.types.map(getTfType) }
     }
     case TOKEN.IndexedAccessType: {
       return {
-        iref: getType(type.objectType).ref,
-        ikey: getType(type.indexType).literal
+        iref: getTfType(node.objectType).ref,
+        ikey: getTfType(node.indexType).literal
       }
     }
     case TOKEN.ParenthesizedType: {
-      return getType(type.type)
+      return getTfType(node.type)
     }
-  }
-
-  throw new TypeError(`Unsupported TOKEN ${type.kind}`)
-}
-
-function getNode (node) {
-  switch (node.kind) {
-    case TOKEN.EndOfFileToken: return
 
     case TOKEN.InterfaceDeclaration: {
       const name = node.name.getText()
       return {
         name,
-        type: node.members.map(m => getNode(m))
+        type: node.members.map(m => getTfType(m))
       }
     }
 
     case TOKEN.TypeAliasDeclaration:
     case TOKEN.PropertySignature: {
       const name = node.name.getText()
-      const type = getType(node.type)
+      const type = getTfType(node.type)
       if (!node.questionToken) return { name, type }
       return {
         name,
@@ -67,11 +61,13 @@ function getNode (node) {
       }
     }
   }
+
+  throw new TypeError(`Unsupported TOKEN ${node.kind}`)
 }
 
 const results = []
 ts.forEachChild(root, (node) => {
-  const result = getNode(node)
+  const result = getTfType(node)
   if (!result) return
   results.push(result)
 })
