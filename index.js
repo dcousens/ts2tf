@@ -1,5 +1,3 @@
-#!/bin/node
-
 const fs = require('fs')
 const ts = require('typescript')
 const TOKEN = ts.SyntaxKind
@@ -63,7 +61,9 @@ function getNode (node) {
 
 const results = []
 ts.forEachChild(root, (node) => {
-  results.push(getNode(node))
+  const result = getNode(node)
+  if (!result) return
+  results.push(result)
 })
 
 console.log(results)
