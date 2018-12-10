@@ -3,6 +3,7 @@ const ts = require('typescript')
 const TOKEN = ts.SyntaxKind
 
 const code = fs.readFileSync(process.argv[2]).toString('utf8')
+const es6 = process.argv[3] === '-es6'
 const root = ts.createSourceFile('tmp.ts', code, ts.ScriptTarget.Latest, true)
 
 function hasExport (modifiers) {
@@ -92,7 +93,10 @@ const tfExports = []
 
 function toDecl (name, type, isProperty, isExport) {
   if (isProperty) return `${name}: ${type}`
-  if (isExport) tfExports.push(name)
+  if (isExport) {
+    if (es6) return `export const ${name} = ${type}`
+    tfExports.push(name)
+  }
   return `const ${name} = ${type}`
 }
 
@@ -116,7 +120,12 @@ function typeToTfString (t) {
   if ('iref' in t) return `${t.iref}[${t.ikey}]`
 }
 
-console.log('const tf = require(\'typeforce\')')
+if (es6) {
+  console.log('import * as tf from \'typeforce\'')
+} else {
+  console.log('const tf = require(\'typeforce\')')
+}
+
 ts.forEachChild(root, (node) => {
   const result = getType(node)
   if (!result) return
@@ -124,6 +133,8 @@ ts.forEachChild(root, (node) => {
   console.log(typeToTfString(result))
 })
 
-console.log(`module.exports = {`)
-console.log(tfExports.map(name => `  ${name}`).join(',\n'))
-console.log(`}`)
+if (!es6) {
+  console.log(`module.exports = {`)
+  console.log(tfExports.map(name => `  ${name}`).join(',\n'))
+  console.log(`}`)
+}

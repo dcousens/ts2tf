@@ -15,4 +15,9 @@ You need to review and fix.
 node index.js test.d.ts
 ```
 
+Or for ES6 import/exports
+``` bash
+node index.js test.d.ts -es6
+```
+
 ## LICENSE [MIT](LICENSE)
