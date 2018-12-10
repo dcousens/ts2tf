@@ -124,5 +124,5 @@ ts.forEachChild(root, (node) => {
 })
 
 console.log(`module.exports = {`)
-tfExports.forEach(name => console.log(`  ${name}`))
+console.log(tfExports.map(name => `  ${name}`).join(',\n'))
 console.log(`}`)
