@@ -1,9 +1,9 @@
 # ts2tf
-A tool that maps typescript types to typeforce code.
+A tool that (hopefully) automates the mapping of typescript type syntax (`interface`, `type` etc) to typeforce types.
 
-**WORK IN PROGRESS**
-
-**WARNING**: The mapped types may be be undefined, out of order, or produce unexpected behaviour... do **NOT** trust the output as is.
+**WARNING**: This is a **WORK IN PROGRESS**.
+The output typeforce types may be undefined, out of order, produce unexpected behaviour or who knows what... do **NOT** trust the output as is.
+You need to review.
 
 
 ### Example
