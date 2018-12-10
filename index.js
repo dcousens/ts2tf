@@ -78,7 +78,7 @@ function getType (node) {
   //   }
   // }
 
-  throw new TypeError(`Unsupported TOKEN ${node.kind}`)
+  throw new TypeError(`Unsupported ${TOKEN[node.kind]} token`)
 }
 
 function toDecl (name, type, isProperty) {
