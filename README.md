@@ -1,6 +1,9 @@
 # ts2tf
+A tool that maps typescript types to typeforce code.
 
-A bikeshed tool that maps typescript types to typeforce code.
+**WORK IN PROGRESS**
+
+**WARNING**: The mapped types may be be undefined, out of order, or produce unexpected behaviour... do **NOT** trust the output as is.
 
 
 ### Example

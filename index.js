@@ -12,29 +12,16 @@ function getType (node) {
     case TOKEN.BooleanKeyword: return 'boolean'
     case TOKEN.NumberKeyword: return 'number'
     case TOKEN.StringKeyword: return 'string'
-    case TOKEN.LiteralType: {
-      const text = node.getText()
-      return { literal: text } // oh no
-    }
+    case TOKEN.ParenthesizedType: return getType(node.type)
+    case TOKEN.LiteralType: return { literal: node.getText() }
     case TOKEN.TypeLiteral: {
       return {
         object: node.members.map(getType)
       }
     }
+
     case TOKEN.ArrayType: {
       return { array: getType(node.elementType) }
-    }
-    case TOKEN.TypeReference: {
-      return { ref: node.getText() }
-    }
-    case TOKEN.IntersectionType: {
-      return { and: node.types.map(getType) }
-    }
-    case TOKEN.UnionType: {
-      return { or: node.types.map(getType) }
-    }
-    case TOKEN.ParenthesizedType: {
-      return getType(node.type)
     }
 
     case TOKEN.InterfaceDeclaration: {
@@ -68,15 +55,27 @@ function getType (node) {
         property: getType(node.type)
       }
     }
-  }
 
-  // TODO
-  // case TOKEN.IndexedAccessType: {
-  //   return {
-  //     iref: getType(node.objectType).ref,
-  //     ikey: getType(node.indexType).literal
-  //   }
-  // }
+    case TOKEN.IntersectionType: {
+      return { and: node.types.map(getType) }
+    }
+
+    case TOKEN.UnionType: {
+      return { or: node.types.map(getType) }
+    }
+
+    case TOKEN.TypeReference: {
+      return { ref: node.getText() }
+    }
+
+    case TOKEN.IndexedAccessType: {
+      console.warn('Indexed types may map properly')
+      return {
+        iref: getType(node.objectType).ref,
+        ikey: getType(node.indexType).literal
+      }
+    }
+  }
 
   throw new TypeError(`Unsupported ${TOKEN[node.kind]} token`)
 }
@@ -103,6 +102,7 @@ function typeToTfString (t) {
 
   if ('literal' in t) return `tf.value(${t.literal})`
   if ('ref' in t) return `${t.ref}`
+  if ('iref' in t) return `${t.iref}[${t.ikey}]`
 }
 
 ts.forEachChild(root, (node) => {
