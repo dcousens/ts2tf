@@ -3,7 +3,7 @@ type Bar = {
   boop: number
 }
 
-interface Message {
+export interface Message {
   error?: string
   parts: {
     text: string
@@ -21,6 +21,6 @@ interface Box {
   } & Coordinate3
 }
 
-type Colors = 'Blue' | 'Green' | 'Red'
+export type Colors = 'Blue' | 'Green' | 'Red'
 type Parens = ('AB') | ('C')
 type Prop = Box['origin']

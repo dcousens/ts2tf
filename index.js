@@ -5,6 +5,11 @@ const TOKEN = ts.SyntaxKind
 const code = fs.readFileSync(process.argv[2]).toString('utf8')
 const root = ts.createSourceFile('tmp.ts', code, ts.ScriptTarget.Latest, true)
 
+function hasExport (modifiers) {
+  if (!modifiers) return false
+  return modifiers.some(x => x.kind === TOKEN.ExportKeyword)
+}
+
 function getType (node) {
   switch (node.kind) {
     case TOKEN.EndOfFileToken: return
@@ -27,6 +32,7 @@ function getType (node) {
     case TOKEN.InterfaceDeclaration: {
       return {
         name: node.name.getText(),
+        export: hasExport(node.modifiers),
         interface: {
           object: node.members.map(m => getType(m))
         }
@@ -36,6 +42,7 @@ function getType (node) {
     case TOKEN.TypeAliasDeclaration: {
       return {
         name: node.name.getText(),
+        export: hasExport(node.modifiers),
         alias: getType(node.type)
       }
     }
@@ -80,8 +87,11 @@ function getType (node) {
   throw new TypeError(`Unsupported ${TOKEN[node.kind]} token`)
 }
 
-function toDecl (name, type, isProperty) {
+const tfExports = []
+
+function toDecl (name, type, isProperty, isExport) {
   if (isProperty) return `${name}: ${type}`
+  if (isExport) tfExports.push(name)
   return `const ${name} = ${type}`
 }
 
@@ -90,9 +100,9 @@ function typeToTfString (t) {
   if (t === 'number') return 'tf.Number'
   if (t === 'string') return 'tf.String'
 
-  if ('alias' in t) return toDecl(t.name, typeToTfString(t.alias), false)
+  if ('alias' in t) return toDecl(t.name, typeToTfString(t.alias), false, t.export)
   if ('property' in t) return toDecl(t.name, typeToTfString(t.property), true)
-  if ('interface' in t) return toDecl(t.name, typeToTfString(t.interface), false)
+  if ('interface' in t) return toDecl(t.name, typeToTfString(t.interface), false, t.export)
 
   if ('array' in t) return `tf.arrayOf(` + typeToTfString(t.array, null) + `)`
   if ('and' in t) return 'tf.allOf(' + t.and.map(typeToTfString).join(', ') + ')'
@@ -112,3 +122,7 @@ ts.forEachChild(root, (node) => {
 
   console.log(typeToTfString(result))
 })
+
+console.log(`module.exports = {`)
+tfExports.forEach(name => console.log(`  ${name}`))
+console.log(`}`)
