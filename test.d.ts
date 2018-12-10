@@ -24,3 +24,4 @@ interface Box {
 export type Colors = 'Blue' | 'Green' | 'Red'
 type Parens = ('AB') | ('C')
 type Prop = Box['origin']
+type MaybeStr = string | null

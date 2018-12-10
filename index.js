@@ -18,6 +18,7 @@ function getType (node) {
     case TOKEN.NumberKeyword: return 'number'
     case TOKEN.StringKeyword: return 'string'
     case TOKEN.ParenthesizedType: return getType(node.type)
+    case TOKEN.NullKeyword: return { literal: 'null' }
     case TOKEN.LiteralType: return { literal: node.getText() }
     case TOKEN.TypeLiteral: {
       return {
