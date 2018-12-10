@@ -14,7 +14,7 @@ function getType (node) {
     case TOKEN.StringKeyword: return 'string'
     case TOKEN.LiteralType: {
       const text = node.getText()
-      return { literal: eval(text) } // oh no
+      return { literal: text } // oh no
     }
     case TOKEN.TypeLiteral: {
       return {
@@ -33,12 +33,6 @@ function getType (node) {
     case TOKEN.UnionType: {
       return { or: node.types.map(getType) }
     }
-    case TOKEN.IndexedAccessType: {
-      return {
-        iref: getType(node.objectType).ref,
-        ikey: getType(node.indexType).literal
-      }
-    }
     case TOKEN.ParenthesizedType: {
       return getType(node.type)
     }
@@ -46,7 +40,9 @@ function getType (node) {
     case TOKEN.InterfaceDeclaration: {
       return {
         name: node.name.getText(),
-        object: node.members.map(m => getType(m))
+        interface: {
+          object: node.members.map(m => getType(m))
+        }
       }
     }
 
@@ -58,66 +54,60 @@ function getType (node) {
     }
 
     case TOKEN.PropertySignature: {
-      const name = node.name.getText()
-      const type = getType(node.type)
-      if (!node.questionToken) return { name, type }
+      if (node.questionToken) {
+        return {
+          name: node.name.getText(),
+          property: {
+            maybe: getType(node.type)
+          }
+        }
+      }
+
       return {
-        name,
-        type,
-        maybe: true
+        name: node.name.getText(),
+        property: getType(node.type)
       }
     }
   }
+
+  // TODO
+  // case TOKEN.IndexedAccessType: {
+  //   return {
+  //     iref: getType(node.objectType).ref,
+  //     ikey: getType(node.indexType).literal
+  //   }
+  // }
 
   throw new TypeError(`Unsupported TOKEN ${node.kind}`)
 }
 
 function toDecl (name, type, isProperty) {
-  if (isProperty === null) return `${type}`
   if (isProperty) return `${name}: ${type}`
   return `const ${name} = ${type}`
 }
 
-function typeToTfString (t, isProperty) {
-  const { name, type } = t
-  if (type === 'boolean') return toDecl(name, 'tf.Boolean', isProperty)
-  if (type === 'number') return toDecl(name, 'tf.Number', isProperty)
-  if (type === 'string') return toDecl(name, 'tf.String', isProperty)
-  if ('alias' in t) return toDecl(name, typeToTfString(t.alias, null), isProperty)
-  if ('array' in t) return toDecl(name, `tf.arrayOf(` + typeToTfString(t.array, null) + `)`, isProperty)
-  if ('object' in t) {
-    return toDecl(name, [
-      'tf.compile({',
-      t.object.map(x => typeToTfString(x, true)).join(', '),
-      '})'
-    ].join(' '), isProperty)
-  }
-  if ('literal' in t) return toDecl(name, `tf.value(${t.literal})`, isProperty)
-  if ('ref' in t) return toDecl(name, `${t.ref}`, isProperty)
-  if ('and' in t) {
-    return toDecl(name, [
-      'tf.allOf(',
-      t.and.map(x => typeToTfString(x, null)).join(', '),
-      ')'
-    ].join(''), isProperty)
-  }
-  if ('or' in t) {
-    return toDecl(name, [
-      'tf.anyOf(',
-      t.or.map(x => typeToTfString(x, null)).join(', '),
-      ')'
-    ].join(''), isProperty)
-  }
+function typeToTfString (t) {
+  if (t === 'boolean') return 'tf.Boolean'
+  if (t === 'number') return 'tf.Number'
+  if (t === 'string') return 'tf.String'
 
-  throw new Error('Unknown')
+  if ('alias' in t) return toDecl(t.name, typeToTfString(t.alias), false)
+  if ('property' in t) return toDecl(t.name, typeToTfString(t.property), true)
+  if ('interface' in t) return toDecl(t.name, typeToTfString(t.interface), false)
+
+  if ('array' in t) return `tf.arrayOf(` + typeToTfString(t.array, null) + `)`
+  if ('and' in t) return 'tf.allOf(' + t.and.map(typeToTfString).join(', ') + ')'
+  if ('maybe' in t) return 'tf.maybe(' + typeToTfString(t.maybe) + ')'
+  if ('object' in t) return 'tf.compile({ ' + t.object.map(typeToTfString).join(', ') + ' })'
+  if ('or' in t) return 'tf.anyOf(' + t.or.map(typeToTfString).join(', ') + ')'
+
+  if ('literal' in t) return `tf.value(${t.literal})`
+  if ('ref' in t) return `${t.ref}`
 }
 
-const results = []
 ts.forEachChild(root, (node) => {
   const result = getType(node)
   if (!result) return
-  results.push(result)
-})
 
-//  console.log(results)
-console.log(results.map(x => typeToTfString(x, false)))
+  console.log(typeToTfString(result))
+})

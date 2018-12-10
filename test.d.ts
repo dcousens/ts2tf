@@ -10,16 +10,17 @@ interface Message {
   }[]
 }
 
-type Coordinate = { x: number } & { y: number } // { x: number, y: number }
+type Coordinate2 = { x: number } & { y: number }
+type Coordinate3 = { x: number } & ({ y: number } & { z: number })
 
 interface Box {
-  vertices: Coordinate[]
+  vertices: Coordinate3[]
   indexes: number[]
   origin: {
     time: number
-  } & Coordinate
+  } & Coordinate3
 }
 
 type Colors = 'Blue' | 'Green' | 'Red'
 type Parens = ('AB') | ('C')
-type Prop = Box['origin']
+//  type Prop = Box['origin'] // TODO
