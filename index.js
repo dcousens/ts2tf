@@ -69,7 +69,7 @@ function getType (node) {
     }
 
     case TOKEN.IndexedAccessType: {
-      console.warn('Indexed types may map properly')
+      console.warn('WARN: indexed type mappings are dangerous, and typically return undefined for non-trivial types')
       return {
         iref: getType(node.objectType).ref,
         ikey: getType(node.indexType).literal
@@ -105,6 +105,7 @@ function typeToTfString (t) {
   if ('iref' in t) return `${t.iref}[${t.ikey}]`
 }
 
+console.log('const tf = require(\'typeforce\')')
 ts.forEachChild(root, (node) => {
   const result = getType(node)
   if (!result) return
