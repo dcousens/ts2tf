@@ -98,7 +98,7 @@ function typeToTfString (t) {
   if ('array' in t) return `tf.arrayOf(` + typeToTfString(t.array, null) + `)`
   if ('and' in t) return 'tf.allOf(' + t.and.map(typeToTfString).join(', ') + ')'
   if ('maybe' in t) return 'tf.maybe(' + typeToTfString(t.maybe) + ')'
-  if ('object' in t) return 'tf.compile({ ' + t.object.map(typeToTfString).join(', ') + ' })'
+  if ('object' in t) return '{ ' + t.object.map(typeToTfString).join(', ') + ' }'
   if ('or' in t) return 'tf.anyOf(' + t.or.map(typeToTfString).join(', ') + ')'
 
   if ('literal' in t) return `tf.value(${t.literal})`
