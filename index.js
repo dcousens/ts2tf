@@ -92,6 +92,19 @@ function getType (node) {
       }
     }
 
+    case TOKEN.TypeParameter: {
+      return getType(node.constraint)
+    }
+
+    case TOKEN.MappedType: {
+      return {
+        map: {
+          key: getType(node.typeParameter),
+          value: getType(node.type)
+        }
+      }
+    }
+
     case TOKEN.IndexedAccessType: {
       console.warn('WARN: indexed type mappings are dangerous, and typically return undefined for non-trivial types')
       return {
@@ -160,7 +173,7 @@ ts.forEachChild(root, (node) => {
   const result = getType(node)
   if (!result) return
 
-//    console.log(JSON.stringify(result))
+  // console.log(JSON.stringify(result))
   console.log(typeToTfString(result))
 })
 

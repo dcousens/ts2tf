@@ -25,7 +25,12 @@ type Mapping = {
   [key: string]: boolean
 }
 
+type FlagNames = 'version' | 'print' | 'daemon' | 'verbose'
 type Flags = {
+  [key in FlagNames]?: boolean
+}
+
+type FlagsLoose = {
   verbose: boolean
   [key: string]: boolean
 }
