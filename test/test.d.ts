@@ -21,6 +21,15 @@ interface Box {
   } & Coordinate3
 }
 
+type Mapping = {
+  [key: string]: boolean
+}
+
+type Flags = {
+  verbose: boolean
+  [key: string]: boolean
+}
+
 export type Colors = 'Blue' | 'Green' | 'Red'
 type Parens = ('AB') | ('C')
 type Prop = Box['origin']

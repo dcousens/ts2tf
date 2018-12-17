@@ -77,6 +77,21 @@ function getType (node) {
       return { ref: node.getText() }
     }
 
+    case TOKEN.Parameter: {
+      return getType(node.type)
+    }
+
+    case TOKEN.IndexSignature: {
+      return {
+        map: {
+          key: {
+            and: node.parameters.map(getType)
+          },
+          value: getType(node.type)
+        }
+      }
+    }
+
     case TOKEN.IndexedAccessType: {
       console.warn('WARN: indexed type mappings are dangerous, and typically return undefined for non-trivial types')
       return {
@@ -104,19 +119,34 @@ function typeToTfString (t) {
   if (t === 'boolean') return 'tf.Boolean'
   if (t === 'number') return 'tf.Number'
   if (t === 'string') return 'tf.String'
+  if (typeof t === 'string') return t
 
   if ('alias' in t) return toDecl(t.name, typeToTfString(t.alias), false, t.export)
   if ('property' in t) return toDecl(t.name, typeToTfString(t.property), true)
   if ('interface' in t) return toDecl(t.name, typeToTfString(t.interface), false, t.export)
+  if ('object' in t) {
+    const strict = t.object.filter(x => !('map' in x))
+    const object = '{ ' + strict.map(typeToTfString).join(', ') + ' }'
+    const loose = t.object.filter(x => 'map' in x)
+    if (loose.length === 0) return object
+    if (strict.length === 0) return typeToTfString({ and: loose.map(typeToTfString) })
+    return typeToTfString({ and: [object, ...loose.map(typeToTfString)] })
+  }
 
   if ('array' in t) return `tf.arrayOf(` + typeToTfString(t.array, null) + `)`
-  if ('and' in t) return 'tf.allOf(' + t.and.map(typeToTfString).join(', ') + ')'
+  if ('and' in t) {
+    if (t.and.length === 1) return typeToTfString(t.and[0])
+    return 'tf.allOf(' + t.and.map(typeToTfString).join(', ') + ')'
+  }
   if ('maybe' in t) return 'tf.maybe(' + typeToTfString(t.maybe) + ')'
-  if ('object' in t) return '{ ' + t.object.map(typeToTfString).join(', ') + ' }'
-  if ('or' in t) return 'tf.anyOf(' + t.or.map(typeToTfString).join(', ') + ')'
+  if ('or' in t) {
+    if (t.or.length === 1) return typeToTfString(t.or[0])
+    return 'tf.anyOf(' + t.or.map(typeToTfString).join(', ') + ')'
+  }
 
   if ('literal' in t) return `tf.value(${t.literal})`
   if ('ref' in t) return `${t.ref}`
+  if ('map' in t) return `tf.map(${typeToTfString(t.map.value)}, ${typeToTfString(t.map.key)})`
   if ('iref' in t) return `${t.iref}[${t.ikey}]`
 }
 
@@ -130,6 +160,7 @@ ts.forEachChild(root, (node) => {
   const result = getType(node)
   if (!result) return
 
+//    console.log(JSON.stringify(result))
   console.log(typeToTfString(result))
 })
 
